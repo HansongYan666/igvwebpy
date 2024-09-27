@@ -29,11 +29,11 @@
 
     <div id="controls">
         <label for="bam">BAM File Name:</label>
-        <input type="text" id="bam" placeholder="Enter BAM file name (e.g., /Users/yanhansong/igv/bam/T23699.bqsr.bam)" value="/Users/yanhansong/igv/bam/T23699.bqsr.bam">
+        <input type="text" id="bam">
         <br><br>
 
         <label for="locus">Locus:</label>
-        <input type="text" id="locus" placeholder="Enter locus (e.g., chr7:55242462-55242475)" value="chr7:55242462-55242475">
+        <input type="text" id="locus">
         <br><br>
 
         <button id="load-btn">Load BAM File</button>
@@ -60,7 +60,7 @@
                     throw new Error("NetWork response was not ok" + response);
                 })
                 .then(data => {
-                    document.getElementById("bamFile").textContent = data.output || data.error;
+                    document.getElementById("bam").textContent = data.output || data.error;
                 })
                 .catch(error => {
                     console.error("Error:", error);
@@ -92,9 +92,9 @@
                     }
                 ]
             };
-            {#if (window.browser) {#}
-            {#    window.browser.destroy();#}
-            {# }#}
+            // {#if (window.browser) {#}
+            // {#    window.browser.destroy();#}
+            // {# }#}
 
         igv.createBrowser(igvDiv, options).then(function (browser) {
             console.log("IGV browser created successfully!");
@@ -104,8 +104,32 @@
 
 
         document.getElementById("load-btn").addEventListener("click", function () {
-            var bamFile = document.getElementById("bam").value;
-            var locus = document.getElementById("locus").value;
+        var bamFile = document.getElementById("bam").value;
+        var locus = document.getElementById("locus").value;
+        fetch('/bamView/get_bam/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify(({
+                    bamFile: bamFile,
+                    locus: locus
+                }))
+            })
+                .then(response => {
+                    if(response.ok) {
+                        return response.json();
+                    }
+                    throw new Error("NetWork response was not ok" + response);
+                })
+                .then(data => {
+                    document.getElementById("bam").textContent = data.output || data.error;
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    document.getElementById("locus").textContent = "Error executing command";
+                })
             createIGV(bamFile, locus);
         });
     </script>
