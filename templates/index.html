@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IGV.js with Local Server BAM</title>
 
-    <script type="text/javascript" src="{% static 'bamView/js/igv.min.js' %}"></script>
+    <script type="text/javascript" src="{% static '/js/igv.min.js' %}"></script>
 
     <style>
         body {
@@ -38,29 +38,6 @@
 
         <button id="load-btn">Load BAM File</button>
     </div>
-    <script type="text/javascript">
-        var bamFile = document.getElementById("bam").value;
-        var locus = document.getElementById("locus").value;
-        fetch('/bamView/test/', {
-            method: 'POST',
-            headers:{
-                'Contect-Type':'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body:JSON.stringify({
-                bamFile: bamFile,
-                locus:locus,
-            })
-        })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("name").textContent = data.output || data.error;
-            })
-            .catch(error => {
-                console.error("Error:", error);
-                document.getElementById("name").textContent = "Error executing command";
-            })
-    </script>
 
     <script type="text/javascript">
         var bamFile = document.getElementById("bam").value;
@@ -83,7 +60,7 @@
                     throw new Error("NetWork response was not ok" + response);
                 })
                 .then(data => {
-                    document.getElementById("bamfile").textContent = data.output || data.error;
+                    document.getElementById("bamFile").textContent = data.output || data.error;
                 })
                 .catch(error => {
                     console.error("Error:", error);
@@ -100,8 +77,8 @@
             var bamFileArr = bamFile.split("/");
             var arrLength = bamFileArr.length;
             var bamfileTmp = bamFileArr[arrLength - 1];
-            var bamUrl = "{% static 'bamView/bams/' %}" + encodeURIComponent(bamfileTmp);
-            var baiUrl = "{% static 'bamView/bams/' %}" + encodeURIComponent(bamfileTmp) + ".bai";
+            var bamUrl = "{% static '/bams/' %}" + encodeURIComponent(bamfileTmp);
+            var baiUrl = "{% static '/bams/' %}" + encodeURIComponent(bamfileTmp) + ".bai";
             var options = {
                 genome: "hg19",
                 locus: locus,

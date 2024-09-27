@@ -30,13 +30,15 @@ def get_bam(request):
         try:
             data = json.loads(request.body)
             bamFile = data['bamFile']
+            f = open("cmd.sh", "w")
             locus = data['locus']
             base_dir = settings.BASE_DIR
             bam = bamFile.split("/")[-1]
-            bamout = f"{base_dir}/apps/bamView/static/bamView/bams/{bam}"
-            cmd = f"rm -rf {base_dir}/apps/bamView/static/bamView/bams/*\n"
+            bamout = f"{base_dir}/apps/bamView/static/bams/{bam}"
+            cmd = f"rm -rf {base_dir}/apps/bamView/static/bams/{bam}*\n"
             cmd += f"samtools view -h -b {bamFile} {locus} -o {bamout}\n"
             cmd += f"samtools index {bamout}\n"
+            f.write(cmd)
             run(cmd, shell=True)
             return JsonResponse({
                 'output': bamout,
