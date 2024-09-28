@@ -1,0 +1,12 @@
+#忽略bam
+*bam
+*bai
+
+
+
+#忽略pycache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+

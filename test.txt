@@ -1,1 +1,0 @@
-/Users/yanhansong/igv/bam/T23699.bqsr.bam
