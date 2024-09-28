@@ -13,49 +13,44 @@ def index(request):
     return render(request, 'index.html')
 
 def releasebampath():
-
     sampledir = settings.BAM_PATH
     outfile = settings.BAM_PATH_FILE
     out = open(outfile,"w")
     for indir in sampledir:
-        for bamfile in Path(sampledir).rglob("*.bqsr.bam"):
-            out.write(bamfile)
+        for bamfile in Path(indir).rglob("*.bqsr.bam"):
+            out.write(str(bamfile)+ "\n")
     out.close()
 
 def get_bam(request):
     samtools = settings.SAMTOOLS
     if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            bamFile = data['bamFile']
-            if not os.path.exists(bamFile):
-                releasebampath()
-                bamFile = os.popen(f"grep ${bamFile} {settings.BAM_PATH_FILE}").readlines()
-                if len(bamFile) == 0:
-                    return JsonResponse({"error": "BAM file not found in the path"}, status=404)
-                else:
-                    bamFile = bamFile[0].strip()
-            f = open("cmd.sh", "w")
-            locus = data['locus']
-            pos = locus.split(":")[1].split("-")
-            chrom = locus.split(":")[0]
-            if len(pos) = 1:
-                pos = int(pos[0])
-                locus = f"{chrom}:{pos-10}-{pos+10}"
-            base_dir = settings.BASE_DIR
-            bam = bamFile.split("/")[-1]
-            bamout = f"{base_dir}/apps/bamView/static/bams/{bam}"
-            cmd = f"rm -rf {base_dir}/apps/bamView/static/bams/{bam}*\n"
-            cmd += f"{samtools} view -h -b {bamFile} {locus} -o {bamout}\n"
-            cmd += f"{samtools} index {bamout}\n"
-            f.write(cmd)
-            run(cmd, shell=True)
-            return JsonResponse({
-                'output': bamout,
-                'status': 'success'
-            }, )
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
+        data = json.loads(request.body)
+        bamFile = data['bamFile']
+        if not os.path.exists(bamFile):
+            releasebampath()
+            bamFile = os.popen(f"grep {bamFile} {settings.BAM_PATH_FILE}").readlines()
+            if len(bamFile) == 0:
+                return JsonResponse({"error": "BAM file not found in the path"}, status=404)
+            else:
+                bamFile = bamFile[0].strip()
+        locus = data['locus']
+        pos = locus.split(":")[1].split("-")
+        chrom = locus.split(":")[0]
+        if len(pos) == 1:
+            pos = int(pos[0])
+            locus = f"{chrom}:{pos-10}-{pos+10}"
+        base_dir = settings.BASE_DIR
+        bam = bamFile.split("/")[-1]
+        bamout = f"{base_dir}/apps/bamView/static/bams/{bam}"
+        cmd = f"rm -rf {base_dir}/apps/bamView/static/bams/{bam}*\n"
+        cmd += f"{samtools} view -h -b {bamFile} {locus} -o {bamout}\n"
+        cmd += f"{samtools} index {bamout}\n"
+        run(cmd, shell=True)
+        data = {
+            "bamFile":bamout,
+            "locus":locus,
+        }
+        return JsonResponse(data)
     return JsonResponse({"error": "invalid request"}, status=405)
     # bam_file = request.GET.get('filename')
     # bam_file = os.path.abspath(bam_file)

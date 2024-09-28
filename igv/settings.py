@@ -134,4 +134,4 @@ SAMTOOLS = "/bioapps/rhel7/miniconda3/bin/samtools"
 
 BAM_PATH = ["/public/workspace/yanhs2024/project/Onc_project/"]
 
-BAM_PATH_FILE = os.path.join(BASE_DIR, "/apps/bamView/templates/bampath.txt")
+BAM_PATH_FILE = os.path.join(BASE_DIR, "apps/bamView/templates/bampath.txt")

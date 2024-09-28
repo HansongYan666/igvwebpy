@@ -4,8 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IGV.js with Local Server BAM</title>
-
+    <style>
+        .center { text-align: center; };
+    </style>
+    <title class="center">IGV.js with Local Server BAM</title>
+    <style>
+        h1 {
+            font-size: 24px;
+            text-align: center;
+        }
+    </style>
     <script type="text/javascript" src="{% static '/js/igv.min.js' %}"></script>
 
     <style>
@@ -25,15 +33,15 @@
     </style>
 </head>
 <body>
-    <h1>IGV.js Web Browser with Server BAM</h1>
+    <h1>IGV Web Browser with Server BAM</h1>
 
-    <div id="controls">
+    <div id="controls" class="center">
         <label for="bam">BAM File Name:</label>
-        <input type="text" id="bam">
+        <input type="text" id="bam", placeholder="Enter BAM file path or BAM file name (e.g., /path/to/bam/sample.bam or sample)">
         <br><br>
 
         <label for="locus">Locus:</label>
-        <input type="text" id="locus">
+        <input type="text" id="locus" placeholder="Enter locus (e.g., chr1:155-158 or chr1:112)">
         <br><br>
 
         <button id="load-btn">Load BAM File</button>
@@ -88,7 +96,12 @@
                         format: 'bam',
                         url: bamUrl,
                         indexURL: baiUrl,
-                        name: 'BAM File: ' + bamfileTmp
+                        name: 'BAM File: ' + bamfileTmp,
+                        coverage: {
+                            type: "basic",
+                            windowSize: 10,
+                            orientation: "all"
+                        }
                     }
                 ]
             };
@@ -124,13 +137,16 @@
                     throw new Error("NetWork response was not ok" + response);
                 })
                 .then(data => {
-                    document.getElementById("bam").textContent = data.output || data.error;
+                    document.getElementById("bam").textContent = data.bamFile || data.error;
+                    document.getElementById("locus").textContent = data.locus || data.error;
+                    bamFile = data.bamFile;
+                    locus = data.locus;
+                    createIGV(bamFile, locus);
                 })
                 .catch(error => {
                     console.error("Error:", error);
                     document.getElementById("locus").textContent = "Error executing command";
                 })
-            createIGV(bamFile, locus);
         });
     </script>
 </body>
