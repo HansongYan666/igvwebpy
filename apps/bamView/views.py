@@ -1,5 +1,5 @@
 from django.shortcuts import render
-
+from pathlib import Path
 # Create your views here.
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -8,36 +8,46 @@ from django.conf import settings
 import pysam
 from subprocess import run
 
+
 def index(request):
     return render(request, 'index.html')
 
+def releasebampath():
 
+    sampledir = settings.BAM_PATH
+    outfile = settings.BAM_PATH_FILE
+    out = open(outfile,"w")
+    for indir in sampledir:
+        for bamfile in Path(sampledir).rglob("*.bqsr.bam"):
+            out.write(bamfile)
+    out.close()
 
-
-# def get_bam(request):
-#     bam_file = request.GET.get('filename')
-#     if bam_file:
-#         bam_path = os.path.join(settings.BAM_DIRECTORY, bam_file)
-#         if os.path.exists(bam_path):
-#             with open(bam_path, 'rb') as f:
-#                 response = HttpResponse(f.read(), content_type='application/octet-stream')
-#                 response['Content-Disposition'] = f'attachment; filename="{bam_file}"'
-#                 return response
-#         return HttpResponse("BAM file not found", status=404)
-#     return HttpResponse("Filename not provided", status=400)
 def get_bam(request):
+    samtools = settings.SAMTOOLS
     if request.method == "POST":
         try:
             data = json.loads(request.body)
             bamFile = data['bamFile']
+            if not os.path.exists(bamFile):
+                releasebampath()
+                bamFile = os.popen(f"grep ${bamFile} {settings.BAM_PATH_FILE}").readlines()
+                if len(bamFile) == 0:
+                    return JsonResponse({"error": "BAM file not found in the path"}, status=404)
+                else:
+                    bamFile = bamFile[0].strip()
             f = open("cmd.sh", "w")
             locus = data['locus']
+            pos = locus.split(":")[1].split("-")
+            chrom = locus.split(":")[0]
+            if len(pos) = 1:
+                pos = int(pos[0])
+                locus = f"{chrom}:{pos-10}-{pos+10}"
             base_dir = settings.BASE_DIR
             bam = bamFile.split("/")[-1]
             bamout = f"{base_dir}/apps/bamView/static/bams/{bam}"
             cmd = f"rm -rf {base_dir}/apps/bamView/static/bams/{bam}*\n"
-            cmd += f"samtools view -h -b {bamFile} {locus} -o {bamout}\n"
-            cmd += f"samtools index {bamout}\n"
+            cmd += f"{samtools} view -h -b {bamFile} {locus} -o {bamout}\n"
+            cmd += f"{samtools} index {bamout}\n"
             f.write(cmd)
             run(cmd, shell=True)
             return JsonResponse({
@@ -83,19 +93,5 @@ def get_bai(request):
         return HttpResponse("BAI file not found", status=404)
     return HttpResponse("Filename not provided", status=400)
 
-def test(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        name = data["bamFile"]
-        age = data["locus"]
-        cmd = f"echo {name} > test.txt\n"
-        #cmd += f"echo {age} >> test.txt\n"
-        run(cmd, shell=True)
-        return JsonResponse({
-            "name": name,
-            "age": age
-        })
-    else:
-        HttpResponse("error",status=400)
 
 

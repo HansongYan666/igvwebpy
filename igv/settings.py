@@ -129,3 +129,9 @@ STATICFILES_DIRS =[
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 BAM_DIRECTORY = os.path.join(BASE_DIR, '/templates/bams')
+
+SAMTOOLS = "/bioapps/rhel7/miniconda3/bin/samtools"
+
+BAM_PATH = ["/public/workspace/yanhs2024/project/Onc_project/"]
+
+BAM_PATH_FILE = os.path.join(BASE_DIR, "/apps/bamView/templates/bampath.txt")
